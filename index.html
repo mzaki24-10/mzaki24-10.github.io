@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuristic Emerald Portfolio | Interactive Web Application</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            deep: '#041510',
+                            card: '#082017',
+                            border: 'rgba(0, 255, 157, 0.18)',
+                            mint: '#00ff9d',
+                            glow: '#00c853',
+                            accent: '#052e21'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 3s infinite alternate',
+                        'float': 'float 5s ease-in-out infinite',
+                        'scanline': 'scanline 8s linear infinite',
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%': { boxShadow: '0 0 15px rgba(0, 255, 157, 0.2)' },
+                            '100%': { boxShadow: '0 0 35px rgba(0, 255, 157, 0.6)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        scanline: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(1000%)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome 6 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #041510;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* Matrix Particle Canvas Overlay */
+        #cyber-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Glassmorphism Styles */
+        .glass-panel {
+            background: rgba(8, 32, 23, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 255, 157, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-nav {
+            background: rgba(4, 21, 16, 0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(0, 255, 157, 0.15);
+        }
+
+        .glass-input {
+            background: rgba(4, 21, 16, 0.7);
+            border: 1px solid rgba(0, 255, 157, 0.2);
+        }
+        .glass-input:focus {
+            border-color: #00ff9d;
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+        }
+
+        /* Glowing Text Effects */
+        .text-glow-mint {
+            text-shadow: 0 0 12px rgba(0, 255, 157, 0.6);
+        }
+        .text-glow-emerald {
+            text-shadow: 0 0 12px rgba(0, 200, 83, 0.5);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #041510;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #082017;
+            border: 1px solid rgba(0, 255, 157, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00ff9d;
+        }
+
+        /* 3D Tilt Glass Sheen Effect */
+        .tilt-card {
+            transform-style: preserve-3d;
+            transition: transform 0.15s ease-out, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .tilt-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 157, 0.15), transparent);
+            transition: 0.5s;
+            pointer-events: none;
+        }
+        .tilt-card:hover::before {
+            left: 100%;
+        }
+
+        /* Skill Animated Bar */
+        .progress-bar-fill {
+            width: 0%;
+            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="relative selection:bg-emerald-mint selection:text-black">
+
+    <!-- Cyber Cyber Matrix Canvas Background -->
+    <canvas id="cyber-canvas"></canvas>
+
+    <!-- Navigation Header -->
+    <header class="fixed top-0 left-0 w-full z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="#hero" class="flex items-center space-x-3 text-xl font-bold tracking-wider group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-mint to-emerald-glow flex items-center justify-center text-black font-black shadow-lg shadow-emerald-mint/20 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-code text-lg"></i>
+                </div>
+                <span class="font-mono text-white tracking-widest">EMERALD<span class="text-emerald-mint text-glow-mint">.DEV</span></span>
+            </a>
+
+            <!-- Desktop Nav Items -->
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-medium">
+                <a href="#about" class="nav-link text-slate-300 hover:text-emerald-mint transition-colors flex items-center gap-2"><i class="fa-solid fa-user text-xs text-emerald-mint"></i> Tentang</a>
+                <a href="#skills" class="nav-link text-slate-300 hover:text-emerald-mint transition-colors flex items-center gap-2"><i class="fa-solid fa-layer-group text-xs text-emerald-mint"></i> Keahlian</a>
+                <a href="#projects" class="nav-link text-slate-300 hover:text-emerald-mint transition-colors flex items-center gap-2"><i class="fa-solid fa-laptop-code text-xs text-emerald-mint"></i> Proyek</a>
+                <a href="#experience" class="nav-link text-slate-300 hover:text-emerald-mint transition-colors flex items-center gap-2"><i class="fa-solid fa-briefcase text-xs text-emerald-mint"></i> Pengalaman</a>
+                <a href="#contact" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-mint to-emerald-glow text-black font-bold shadow-lg shadow-emerald-mint/20 hover:shadow-emerald-mint/40 hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-paper-plane text-xs"></i> Kontak
+                </a>
+            </nav>
+
+            <!-- Mobile Hamburger Button -->
+            <button id="mobile-menu-btn" class="md:hidden text-emerald-mint hover:text-white p-2 text-xl focus:outline-none" aria-label="Toggle Menu">
+                <i class="fa-solid fa-bars-staggered"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Drawer Navigation -->
+        <div id="mobile-menu" class="hidden md:hidden glass-panel border-b border-emerald-mint/20 px-6 py-6 space-y-4">
+            <a href="#about" class="mobile-nav-link block text-slate-300 hover:text-emerald-mint text-base font-medium py-2 flex items-center gap-3"><i class="fa-solid fa-user text-emerald-mint w-5"></i> Tentang</a>
+            <a href="#skills" class="mobile-nav-link block text-slate-300 hover:text-emerald-mint text-base font-medium py-2 flex items-center gap-3"><i class="fa-solid fa-layer-group text-emerald-mint w-5"></i> Keahlian</a>
+            <a href="#projects" class="mobile-nav-link block text-slate-300 hover:text-emerald-mint text-base font-medium py-2 flex items-center gap-3"><i class="fa-solid fa-laptop-code text-emerald-mint w-5"></i> Proyek</a>
+            <a href="#experience" class="mobile-nav-link block text-slate-300 hover:text-emerald-mint text-base font-medium py-2 flex items-center gap-3"><i class="fa-solid fa-briefcase text-emerald-mint w-5"></i> Pengalaman</a>
+            <a href="#contact" class="mobile-nav-link block text-slate-300 hover:text-emerald-mint text-base font-medium py-2 flex items-center gap-3"><i class="fa-solid fa-paper-plane text-emerald-mint w-5"></i> Kontak</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="hero" class="relative min-h-screen flex items-center justify-center pt-24 pb-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div class="max-w-5xl mx-auto text-center z-10">
+            
+            <!-- Glowing Tag Status -->
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-emerald-mint text-xs sm:text-sm font-mono font-semibold mb-6 animate-pulse-glow">
+                <span class="w-2 h-2 rounded-full bg-emerald-mint animate-ping"></span>
+                <i class="fa-solid fa-terminal text-emerald-mint"></i>
+                <span>SYSTEM STATUS: ONLINE & READY FOR HIRE</span>
+            </div>
+
+            <!-- Main Heading with Typing Effect -->
+            <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight mb-6">
+                Pengembang Web Futuristik &<br class="hidden sm:inline">
+                <span class="bg-gradient-to-r from-emerald-mint via-teal-300 to-emerald-glow bg-clip-text text-transparent text-glow-mint font-mono" id="typing-text"></span>
+                <span class="text-emerald-mint animate-pulse">|</span>
+            </h1>
+
+            <p class="max-w-2xl mx-auto text-slate-400 text-base sm:text-lg mb-8 leading-relaxed">
+                Menciptakan arsitektur perangkat lunak modern dengan performa tinggi, animasi CSS interaktif, antarmuka pengguna ultra-responsif berbasis estetika <span class="text-emerald-mint font-semibold">Emerald Glassmorphism</span>.
+            </p>
+
+            <!-- CTA Action Buttons -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+                <a href="#projects" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-mint to-emerald-glow text-black font-extrabold shadow-lg shadow-emerald-mint/25 hover:shadow-emerald-mint/50 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-rocket text-sm"></i> Eksplorasi Proyek
+                </a>
+                <a href="#contact" class="w-full sm:w-auto px-8 py-4 rounded-xl glass-panel text-slate-200 hover:text-emerald-mint font-bold hover:border-emerald-mint/50 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-download text-sm"></i> Unduh Curriculum Vitae
+                </a>
+            </div>
+
+            <!-- Fast Stat Counters -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto pt-6 border-t border-emerald-mint/10">
+                <div class="p-3">
+                    <div class="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-mint text-glow-mint">5+</div>
+                    <div class="text-xs text-slate-400 mt-1">Tahun Pengalaman</div>
+                </div>
+                <div class="p-3">
+                    <div class="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-mint text-glow-mint">40+</div>
+                    <div class="text-xs text-slate-400 mt-1">Proyek Selesai</div>
+                </div>
+                <div class="p-3">
+                    <div class="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-mint text-glow-mint">99%</div>
+                    <div class="text-xs text-slate-400 mt-1">Kepuasan Klien</div>
+                </div>
+                <div class="p-3">
+                    <div class="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-mint text-glow-mint">24/7</div>
+                    <div class="text-xs text-slate-400 mt-1">Dukungan Sistem</div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-emerald-mint to-emerald-glow bg-clip-text text-transparent inline-block font-mono">Tentang Saya</h2>
+                <div class="w-20 h-1 bg-emerald-mint mx-auto mt-2 rounded-full shadow-lg shadow-emerald-mint/50"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <!-- Avatar Visual Area -->
+                <div class="lg:col-span-5 flex justify-center">
+                    <div class="relative w-64 h-64 sm:w-80 sm:h-80 rounded-2xl glass-panel p-4 shadow-2xl flex items-center justify-center group">
+                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-tr from-emerald-mint/20 to-emerald-glow/10 blur-xl group-hover:blur-2xl transition-all"></div>
+                        <div class="relative w-full h-full rounded-xl bg-emerald-deep overflow-hidden flex flex-col items-center justify-center text-slate-500 border border-emerald-mint/20">
+                            <i class="fa-solid fa-user-astronaut text-7xl text-emerald-mint animate-float mb-4 text-glow-mint"></i>
+                            <span class="text-xs font-mono text-emerald-mint/70">&lt;Emerald_Developer /&gt;</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bio Content -->
+                <div class="lg:col-span-7 space-y-6 text-slate-300">
+                    <h3 class="text-2xl font-bold text-white font-mono">Hi, Saya Alex — Full Stack Engineer & UI/UX Specialist</h3>
+                    <p class="leading-relaxed">
+                        Fokus utama saya adalah membangun aplikasi web skala industri yang tidak hanya memiliki tampilan futuristik dan modern, tetapi juga responsif, performan, dan aman. 
+                    </p>
+                    <p class="leading-relaxed">
+                        Dengan perpaduan arsitektur JavaScript terkini, optimalisasi CSS visual efek glassmorphism, dan strategi pengembangan berbasis sistem, saya siap mengubah ide Anda menjadi realitas digital berkualitas tinggi.
+                    </p>
+
+                    <!-- Hobi & Minat Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4">
+                        <div class="glass-panel p-4 rounded-xl text-center hover:border-emerald-mint/50 transition-colors">
+                            <i class="fa-solid fa-code text-emerald-mint text-2xl mb-2"></i>
+                            <div class="text-sm font-semibold text-white">Clean Code</div>
+                        </div>
+                        <div class="glass-panel p-4 rounded-xl text-center hover:border-emerald-mint/50 transition-colors">
+                            <i class="fa-solid fa-wand-magic-sparkles text-emerald-mint text-2xl mb-2"></i>
+                            <div class="text-sm font-semibold text-white">UI/UX Motion</div>
+                        </div>
+                        <div class="glass-panel p-4 rounded-xl text-center hover:border-emerald-mint/50 transition-colors col-span-2 sm:col-span-1">
+                            <i class="fa-solid fa-microchip text-emerald-mint text-2xl mb-2"></i>
+                            <div class="text-sm font-semibold text-white">System Architecture</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="py-20 px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-emerald-mint to-emerald-glow bg-clip-text text-transparent inline-block font-mono">Keahlian Utama</h2>
+                <div class="w-20 h-1 bg-emerald-mint mx-auto mt-2 rounded-full shadow-lg shadow-emerald-mint/50"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Frontend Skills -->
+                <div class="glass-panel p-6 sm:p-8 rounded-2xl">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-mint/10 flex items-center justify-center text-emerald-mint text-xl">
+                            <i class="fa-solid fa-desktop"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white font-mono">Frontend Development</h3>
+                    </div>
+
+                    <div class="space-y-5">
+                        <div class="skill-item">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-medium text-slate-200 flex items-center gap-2"><i class="fa-brands fa-html5 text-emerald-mint"></i> HTML5, CSS3 & Tailwind</span>
+                                <span class="text-emerald-mint font-mono">95%</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-emerald-deep rounded-full overflow-hidden border border-emerald-mint/20">
+                                <div class="progress-bar-fill h-full bg-gradient-to-r from-emerald-mint to-emerald-glow rounded-full" data-progress="95%"></div>
+                            </div>
+                        </div>
+
+                        <div class="skill-item">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-medium text-slate-200 flex items-center gap-2"><i class="fa-brands fa-js text-emerald-mint"></i> JavaScript ES6+ & TypeScript</span>
+                                <span class="text-emerald-mint font-mono">90%</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-emerald-deep rounded-full overflow-hidden border border-emerald-mint/20">
+                                <div class="progress-bar-fill h-full bg-gradient-to-r from-emerald-mint to-emerald-glow rounded-full" data-progress="90%"></div>
+                            </div>
+                        </div>
+
+                        <div class="skill-item">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-medium text-slate-200 flex items-center gap-2"><i class="fa-brands fa-react text-emerald-mint"></i> React.js & Next.js Framework</span>
+                                <span class="text-emerald-mint font-mono">88%</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-emerald-deep rounded-full overflow-hidden border border-emerald-mint/20">
+                                <div class="progress-bar-fill h-full bg-gradient-to-r from-emerald-mint to-emerald-glow rounded-full" data-progress="88%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backend & DevOps Skills -->
+                <div class="glass-panel p-6 sm:p-8 rounded-2xl">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-mint/10 flex items-center justify-center text-emerald-mint text-xl">
+                            <i class="fa-solid fa-server"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white font-mono">Backend & Tools</h3>
+                    </div>
+
+                    <div class="space-y-5">
+                        <div class="skill-item">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-medium text-slate-200 flex items-center gap-2"><i class="fa-brands fa-node-js text-emerald-mint"></i> Node.js / Express API</span>
+                                <span class="text-emerald-mint font-mono">82%</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-emerald-deep rounded-full overflow-hidden border border-emerald-mint/20">
+                                <div class="progress-bar-fill h-full bg-gradient-to-r from-emerald-mint to-emerald-glow rounded-full" data-progress="82%"></div>
+                            </div>
+                        </div>
+
+                        <div class="skill-item">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-medium text-slate-200 flex items-center gap-2"><i class="fa-solid fa-database text-emerald-mint"></i> PostgreSQL / MongoDB</span>
+                                <span class="text-emerald-mint font-mono">78%</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-emerald-deep rounded-full overflow-hidden border border-emerald-mint/20">
+                                <div class="progress-bar-fill h-full bg-gradient-to-r from-emerald-mint to-emerald-glow rounded-full" data-progress="78%"></div>
+                            </div>
+                        </div>
+
+                        <div class="skill-item">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-medium text-slate-200 flex items-center gap-2"><i class="fa-brands fa-git-alt text-emerald-mint"></i> Git & Docker Container</span>
+                                <span class="text-emerald-mint font-mono">85%</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-emerald-deep rounded-full overflow-hidden border border-emerald-mint/20">
+                                <div class="progress-bar-fill h-full bg-gradient-to-r from-emerald-mint to-emerald-glow rounded-full" data-progress="85%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="py-20 px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-emerald-mint to-emerald-glow bg-clip-text text-transparent inline-block font-mono">Portofolio Proyek</h2>
+                <div class="w-20 h-1 bg-emerald-mint mx-auto mt-2 rounded-full shadow-lg shadow-emerald-mint/50"></div>
+            </div>
+
+            <!-- Filter Category Buttons -->
+            <div class="flex flex-wrap justify-center gap-3 mb-12" id="project-filters">
+                <button class="filter-btn active px-5 py-2 rounded-xl text-sm font-semibold transition-all bg-gradient-to-r from-emerald-mint to-emerald-glow text-black shadow-md shadow-emerald-mint/20" data-filter="all">
+                    <i class="fa-solid fa-list-check text-xs mr-1"></i> Semua Proyek
+                </button>
+                <button class="filter-btn px-5 py-2 rounded-xl text-sm font-semibold transition-all glass-panel text-slate-300 hover:text-emerald-mint hover:border-emerald-mint/50" data-filter="web">
+                    <i class="fa-solid fa-globe text-xs mr-1"></i> Web Dev
+                </button>
+                <button class="filter-btn px-5 py-2 rounded-xl text-sm font-semibold transition-all glass-panel text-slate-300 hover:text-emerald-mint hover:border-emerald-mint/50" data-filter="mobile">
+                    <i class="fa-solid fa-mobile-screen-button text-xs mr-1"></i> Mobile App
+                </button>
+                <button class="filter-btn px-5 py-2 rounded-xl text-sm font-semibold transition-all glass-panel text-slate-300 hover:text-emerald-mint hover:border-emerald-mint/50" data-filter="design">
+                    <i class="fa-solid fa-wand-magic-sparkles text-xs mr-1"></i> UI/UX Design
+                </button>
+            </div>
+
+            <!-- Projects Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="projects-grid">
+                
+                <!-- Project Item 1 -->
+                <div class="project-item tilt-card glass-panel rounded-2xl overflow-hidden hover:border-emerald-mint/60 transition-all duration-300" data-category="web">
+                    <div class="relative h-48 bg-emerald-deep flex items-center justify-center border-b border-emerald-mint/20">
+                        <i class="fa-solid fa-chart-pie text-6xl text-emerald-mint opacity-80 group-hover:scale-110 transition-transform text-glow-mint"></i>
+                        <span class="absolute top-4 right-4 px-3 py-1 bg-emerald-mint/10 text-emerald-mint text-xs font-mono font-semibold rounded-full border border-emerald-mint/30">Web Dev</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-white font-mono mb-2">Emerald FinTech Dashboard</h3>
+                        <p class="text-slate-400 text-sm mb-4">Platform analisis data keuangan terenkripsi dengan animasi grafik real-time.</p>
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            <span class="px-2.5 py-1 bg-emerald-deep text-emerald-mint text-xs font-mono rounded-md border border-emerald-mint/20">React</span>
+                            <span class="px-2.5 py-1 bg-emerald-deep text-emerald-mint text-xs font-mono rounded-md border border-emerald-mint/20">Tailwind</span>
+                            <span class="px-2.5 py-1 bg-emerald-deep text-emerald-mint text-xs font-mono rounded-md border border-emerald-mint/20">ChartJS</span>
+                        </div>
+                        <div class="flex items-center justify-between pt-4 border-t border-emerald-mint/10">
+                            <a href="#" class="text-emerald-mint hover:text-white text-sm font-semibold flex items-center gap-2 transition-colors">
+                                <i class="fa-solid fa-up-right-from-square text-xs"></i> Live Demo
+                            </a>
+                            <a href="#" class="text-slate-400 hover:text-emerald-mint text-sm flex items-center gap-2 transition-colors">
+                                <i class="fa-brands fa-github text-base"></i> Code
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Item 2 -->
+                <div class="project-item tilt-card glass-panel rounded-2xl overflow-hidden hover:border-emerald-mint/60 transition-all duration-300" data-category="mobile">
+                    <div class="relative h-48 bg-emerald-deep flex items-center justify-center border-b border-emerald-mint/20">
+                        <i class="fa-solid fa-network-wired text-6xl text-emerald-mint opacity-80 group-hover:scale-110 transition-transform text-glow-mint"></i>
+                        <span class="absolute top-4 right-4 px-3 py-1 bg-emerald-mint/10 text-emerald-mint text-xs font-mono font-semibold rounded-full border border-emerald-mint/30">Mobile App</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-white font-mono mb-2">Crypto Node Tracker</h3>
+                        <p class="text-slate-400 text-sm mb-4">Aplikasi pemantau node blockchain dengan notifikasi sistem keamanan real-time.</p>
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            <span class="px-2.5 py-1 bg-emerald-deep text-emerald-mint text-xs font-mono rounded-md border border-emerald-mint/20">React Native</span>
+                            <span class="px-2.5 py-1 bg-emerald-deep text-emerald-mint text-xs font-mono rounded-md border border-emerald-mint/20">Web3</span>
+                        </div>
+                        <div class="flex items-center justify-between pt-4 border-t border-emerald-mint/10">
+                            <a href="#" class="text-emerald-mint hover:text-white text-sm font-semibold flex items-center gap-2 transition-colors">
+                                <i class="fa-solid fa-up-right-from-square text-xs"></i> Live Demo
+                            </a>
+                            <a href="#" class="text-slate-400 hover:text-emerald-mint text-sm flex items-center gap-2 transition-colors">
+                                <i class="fa-brands fa-github text-base"></i> Code
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Item 3 -->
+                <div class="project-item tilt-card glass-panel rounded-2xl overflow-hidden hover:border-emerald-mint/60 transition-all duration-300" data-category="design">
+                    <div class="relative h-48 bg-emerald-deep flex items-center justify-center border-b border-emerald-mint/20">
+                        <i class="fa-solid fa-vr-cardboard text-6xl text-emerald-mint opacity-80 group-hover:scale-110 transition-transform text-glow-mint"></i>
+                        <span class="absolute top-4 right-4 px-3 py-1 bg-emerald-mint/10 text-emerald-mint text-xs font-mono font-semibold rounded-full border border-emerald-mint/30">UI/UX Design</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-white font-mono mb-2">Cyberpunk UI Concept</h3>
+                        <p class="text-slate-400 text-sm mb-4">Desain antarmuka futuristik bertema cyberpunk emerald untuk aplikasi gim 3D.</p>
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            <span class="px-2.5 py-1 bg-emerald-deep text-emerald-mint text-xs font-mono rounded-md border border-emerald-mint/20">Figma</span>
+                            <span class="px-2.5 py-1 bg-emerald-deep text-emerald-mint text-xs font-mono rounded-md border border-emerald-mint/20">Prototyping</span>
+                        </div>
+                        <div class="flex items-center justify-between pt-4 border-t border-emerald-mint/10">
+                            <a href="#" class="text-emerald-mint hover:text-white text-sm font-semibold flex items-center gap-2 transition-colors">
+                                <i class="fa-solid fa-up-right-from-square text-xs"></i> View Design
+                            </a>
+                            <a href="#" class="text-slate-400 hover:text-emerald-mint text-sm flex items-center gap-2 transition-colors">
+                                <i class="fa-brands fa-dribbble text-base"></i> Shot
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Timeline Section -->
+    <section id="experience" class="py-20 px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-emerald-mint to-emerald-glow bg-clip-text text-transparent inline-block font-mono">Pengalaman & Pendidikan</h2>
+                <div class="w-20 h-1 bg-emerald-mint mx-auto mt-2 rounded-full shadow-lg shadow-emerald-mint/50"></div>
+            </div>
+
+            <div class="relative border-l-2 border-emerald-mint/30 ml-4 sm:ml-32 space-y-12">
+                
+                <!-- Timeline Item 1 -->
+                <div class="relative pl-8 sm:pl-10 group">
+                    <div class="hidden sm:block absolute -left-36 top-1 text-sm font-mono font-bold text-emerald-mint text-right w-28">
+                        2023 - SKRG
+                    </div>
+                    <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-emerald-mint border-4 border-emerald-deep group-hover:scale-125 transition-transform shadow-lg shadow-emerald-mint/80"></div>
+
+                    <div class="glass-panel p-6 rounded-2xl hover:border-emerald-mint/50 transition-all">
+                        <span class="sm:hidden inline-block text-xs font-mono font-bold text-emerald-mint mb-2">2023 - SKRG</span>
+                        <h3 class="text-lg font-bold text-white font-mono">Senior Lead Developer</h3>
+                        <p class="text-emerald-mint text-sm font-medium mb-3">Emerald Tech Solutions</p>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Memimpin tim rekayasa web untuk sistem aplikasi cloud berskala besar dengan performa tinggi.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 2 -->
+                <div class="relative pl-8 sm:pl-10 group">
+                    <div class="hidden sm:block absolute -left-36 top-1 text-sm font-mono font-bold text-emerald-mint text-right w-28">
+                        2020 - 2023
+                    </div>
+                    <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-emerald-mint border-4 border-emerald-deep group-hover:scale-125 transition-transform shadow-lg shadow-emerald-mint/80"></div>
+
+                    <div class="glass-panel p-6 rounded-2xl hover:border-emerald-mint/50 transition-all">
+                        <span class="sm:hidden inline-block text-xs font-mono font-bold text-emerald-mint mb-2">2020 - 2023</span>
+                        <h3 class="text-lg font-bold text-white font-mono">Frontend Specialist</h3>
+                        <p class="text-emerald-mint text-sm font-medium mb-3">Cyber Interactive Studio</p>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Mengembangkan modul antarmuka interaktif responsif berbasis animasi CSS dan React.js.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 3 -->
+                <div class="relative pl-8 sm:pl-10 group">
+                    <div class="hidden sm:block absolute -left-36 top-1 text-sm font-mono font-bold text-emerald-mint text-right w-28">
+                        2016 - 2020
+                    </div>
+                    <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-emerald-mint border-4 border-emerald-deep group-hover:scale-125 transition-transform shadow-lg shadow-emerald-mint/80"></div>
+
+                    <div class="glass-panel p-6 rounded-2xl hover:border-emerald-mint/50 transition-all">
+                        <span class="sm:hidden inline-block text-xs font-mono font-bold text-emerald-mint mb-2">2016 - 2020</span>
+                        <h3 class="text-lg font-bold text-white font-mono">Sarjana Komputer (S.Kom)</h3>
+                        <p class="text-emerald-mint text-sm font-medium mb-3">Universitas Teknologi Digital</p>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Fokus studi pada Rekayasa Perangkat Lunak dan Kecerdasan Buatan (IPK 3.85 / 4.00).
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-emerald-mint to-emerald-glow bg-clip-text text-transparent inline-block font-mono">Hubungi Saya</h2>
+                <div class="w-20 h-1 bg-emerald-mint mx-auto mt-2 rounded-full shadow-lg shadow-emerald-mint/50"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Info Cards -->
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="glass-panel p-6 rounded-2xl flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-mint/10 flex items-center justify-center text-emerald-mint text-xl border border-emerald-mint/20">
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-400 font-mono">EMAIL</div>
+                            <div class="text-white font-semibold text-sm sm:text-base">alex.emerald@example.com</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-mint/10 flex items-center justify-center text-emerald-mint text-xl border border-emerald-mint/20">
+                            <i class="fa-solid fa-phone"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-400 font-mono">TELEPON</div>
+                            <div class="text-white font-semibold text-sm sm:text-base">+62 812 9988 7766</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-mint/10 flex items-center justify-center text-emerald-mint text-xl border border-emerald-mint/20">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-400 font-mono">LOKASI</div>
+                            <div class="text-white font-semibold text-sm sm:text-base">Jakarta, Indonesia</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Form -->
+                <div class="lg:col-span-7">
+                    <form id="contact-form" class="glass-panel p-6 sm:p-8 rounded-2xl space-y-4">
+                        <div>
+                            <label for="name" class="block text-xs font-mono text-emerald-mint mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-user text-xs"></i> NAMA LENGKAP
+                            </label>
+                            <input type="text" id="name" required class="w-full glass-input rounded-xl px-4 py-3 text-slate-200 focus:outline-none transition-colors" placeholder="Masukkan nama Anda">
+                        </div>
+
+                        <div>
+                            <label for="email" class="block text-xs font-mono text-emerald-mint mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-at text-xs"></i> ALAMAT EMAIL
+                            </label>
+                            <input type="email" id="email" required class="w-full glass-input rounded-xl px-4 py-3 text-slate-200 focus:outline-none transition-colors" placeholder="nama@domain.com">
+                        </div>
+
+                        <div>
+                            <label for="message" class="block text-xs font-mono text-emerald-mint mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-message text-xs"></i> PESAN
+                            </label>
+                            <textarea id="message" rows="4" required class="w-full glass-input rounded-xl px-4 py-3 text-slate-200 focus:outline-none transition-colors" placeholder="Tuliskan ide proyek Anda..."></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-mint to-emerald-glow text-black font-extrabold shadow-lg shadow-emerald-mint/20 hover:opacity-95 transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i> Kirim Pesan Futuristik
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 px-4 border-t border-emerald-mint/10 relative z-10 text-center text-slate-500 text-sm">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="font-mono text-xs text-slate-400">
+                &copy; 2026 EMERALD.DEV — ALL RIGHTS RESERVED.
+            </div>
+            <div class="flex items-center space-x-6 text-emerald-mint">
+                <a href="https://github.com" target="_blank" class="hover:scale-125 transition-transform" aria-label="GitHub"><i class="fa-brands fa-github text-lg"></i></a>
+                <a href="https://linkedin.com" target="_blank" class="hover:scale-125 transition-transform" aria-label="LinkedIn"><i class="fa-brands fa-linkedin text-lg"></i></a>
+                <a href="https://twitter.com" target="_blank" class="hover:scale-125 transition-transform" aria-label="Twitter"><i class="fa-brands fa-x-twitter text-lg"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-24 right-6 glass-panel border border-emerald-mint text-emerald-mint px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-[-20px] z-50">
+        <i class="fa-solid fa-circle-check text-xl"></i>
+        <span id="toast-message" class="text-sm font-mono text-slate-200">Pesan Anda berhasil terkirim!</span>
+    </div>
+
+    <!-- JavaScript Engine -->
+    <script>
+        // 1. Matrix Cyber Green Particles Background
+        const canvas = document.getElementById('cyber-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray = [];
+        let mouse = { x: null, y: null, radius: 140 };
+
+        function initCanvasSize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        initCanvasSize();
+
+        window.addEventListener('resize', () => {
+            initCanvasSize();
+            initParticles();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+
+        class Particle {
+            constructor(x, y, size, color, speedX, speedY) {
+                this.x = x;
+                this.y = y;
+                this.size = size;
+                this.color = color;
+                this.speedX = speedX;
+                this.speedY = speedY;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+            update() {
+                if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
+                if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    if (mouse.x < this.x && this.x < canvas.width - this.size * 10) this.x += 2;
+                    if (mouse.x > this.x && this.x > this.size * 10) this.x -= 2;
+                    if (mouse.y < this.y && this.y < canvas.height - this.size * 10) this.y += 2;
+                    if (mouse.y > this.y && this.y > this.size * 10) this.y -= 2;
+                }
+
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.width * canvas.height) / 14000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = Math.random() * (canvas.width - size * 2) + size;
+                let y = Math.random() * (canvas.height - size * 2) + size;
+                let speedX = (Math.random() * 0.6) - 0.3;
+                let speedY = (Math.random() * 0.6) - 0.3;
+                let color = 'rgba(0, 255, 157, 0.4)';
+                particlesArray.push(new Particle(x, y, size, color, speedX, speedY));
+            }
+        }
+        initParticles();
+
+        function connectParticles() {
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let dx = particlesArray[a].x - particlesArray[b].x;
+                    let dy = particlesArray[a].y - particlesArray[b].y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 110) {
+                        ctx.strokeStyle = `rgba(0, 255, 157, ${1 - distance / 110})`;
+                        ctx.lineWidth = 0.4;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animateCanvas() {
+            requestAnimationFrame(animateCanvas);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connectParticles();
+        }
+        animateCanvas();
+
+        // 2. Typing Effect for Hero Title
+        const roles = ["Full Stack Engineer", "UI/UX Innovator", "Glassmorphism Creator"];
+        let roleIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        const typingSpeed = 100;
+        const typingText = document.getElementById('typing-text');
+
+        function typeEffect() {
+            const currentRole = roles[roleIndex];
+            if (isDeleting) {
+                typingText.textContent = currentRole.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                typingText.textContent = currentRole.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            if (!isDeleting && charIndex === currentRole.length) {
+                isDeleting = true;
+                setTimeout(typeEffect, 1800);
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                roleIndex = (roleIndex + 1) % roles.length;
+                setTimeout(typeEffect, 500);
+            } else {
+                setTimeout(typeEffect, isDeleting ? typingSpeed / 2 : typingSpeed);
+            }
+        }
+        typeEffect();
+
+        // 3. Mobile Menu Toggle
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        document.querySelectorAll('.mobile-nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+
+        // 4. Filter Projects System
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const projectItems = document.querySelectorAll('.project-item');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => {
+                    b.classList.remove('active', 'bg-gradient-to-r', 'from-emerald-mint', 'to-emerald-glow', 'text-black');
+                    b.classList.add('glass-panel', 'text-slate-300');
+                });
+                btn.classList.add('active', 'bg-gradient-to-r', 'from-emerald-mint', 'to-emerald-glow', 'text-black');
+                btn.classList.remove('glass-panel', 'text-slate-300');
+
+                const filter = btn.getAttribute('data-filter');
+                projectItems.forEach(item => {
+                    if (filter === 'all' || item.getAttribute('data-category') === filter) {
+                        item.style.display = 'block';
+                        setTimeout(() => item.style.opacity = '1', 50);
+                    } else {
+                        item.style.opacity = '0';
+                        setTimeout(() => item.style.display = 'none', 300);
+                    }
+                });
+            });
+        });
+
+        // 5. 3D Tilt Sheen Effect
+        const tiltCards = document.querySelectorAll('.tilt-card');
+        tiltCards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -8;
+                const rotateY = ((x - centerX) / centerX) * 8;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+            });
+        });
+
+        // 6. Skill Bars Animated on Scroll
+        const skillBars = document.querySelectorAll('.progress-bar-fill');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const targetWidth = entry.target.getAttribute('data-progress');
+                    entry.target.style.width = targetWidth;
+                }
+            });
+        }, { threshold: 0.2 });
+
+        skillBars.forEach(bar => observer.observe(bar));
+
+        // 7. Contact Form Simulation
+        const contactForm = document.getElementById('contact-form');
+        const toast = document.getElementById('toast');
+
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            contactForm.reset();
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
+            }, 4000);
+        });
+    </script>
+</body>
+</html>
